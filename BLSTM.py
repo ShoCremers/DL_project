@@ -110,13 +110,18 @@ print(test_x[0])
 
 
 # In[142]:
-
+if torch.cuda.is_available():
+    dev = 'cuda:0'
+    print('You have CUDA device.')
+else:
+    dev = 'cpu'
+    print('Switch to GPU runtime to speed up computation.')
 
 # create tensor objects
-x_train = torch.from_numpy(train_x).float()
-y_train = torch.from_numpy(train_y).float()
-x_test = torch.from_numpy(test_x).float()
-y_test = torch.from_numpy(test_y).float()
+x_train = torch.from_numpy(train_x).float().to(dev)
+y_train = torch.from_numpy(train_y).float().to(dev)
+x_test = torch.from_numpy(test_x).float().to(dev)
+y_test = torch.from_numpy(test_y).float().to(dev)
 # train_loader = DataLoader(x_train,y_train, batch_size=128, shuffle=False)
 # val_loader = DataLoader(x_test,y_test batch_size=128, shuffle=True)
 
@@ -211,7 +216,7 @@ class QuantileLoss(nn.Module):
 quantiles = [.01,0.05, 0.10,0.25, .5, 0.75, 0.90, 0.95, .99]
 criterion = QuantileLoss(quantiles)
 
-model = BLSTM(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, num_layers=num_layers, quantiles=quantiles)
+model = BLSTM(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, num_layers=num_layers, quantiles=quantiles).to(dev)
 # for practice use MSE, in real experiment use NLLLOSS for parametric
 print(model)
 
