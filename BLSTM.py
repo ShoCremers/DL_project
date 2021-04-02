@@ -13,10 +13,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, transforms, models
 
-from torchsummary import summary
+#from torchsummary import summary
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
@@ -151,9 +151,9 @@ class BLSTM(nn.Module):
         
     def forward(self, x):
         # Initialize hidden state with zeros
-        h0 = torch.zeros(self.num_layers*2, x.size(0), self.hidden_dim).requires_grad_() #hidden layer output
+        h0 = torch.zeros(self.num_layers*2, x.size(0), self.hidden_dim).to(dev).requires_grad_() #hidden layer output
         # Initialize cell state
-        c0 = torch.zeros(self.num_layers*2, x.size(0), self.hidden_dim).requires_grad_() 
+        c0 = torch.zeros(self.num_layers*2, x.size(0), self.hidden_dim).to(dev).requires_grad_() 
         # We need to detach as we are doing truncated backpropagation through time (BPTT)
         # If we don't, we'll backprop all the way to the start even after going through another batch
         out, (hn, cn) = self.lstm(x, (h0.detach(), c0.detach()))
@@ -253,7 +253,7 @@ model.eval()
 with torch.no_grad():
     preds=model(x_test)
 
-
+preds=preds.to('cpu')
 # In[148]:
 
 
