@@ -21,18 +21,45 @@ TODO (maybe): shall we explain BLSTM theory here? {lstm block, equation, bi dire
 Refer to Andrew Ng's renowned videos [3] for in-depth explanation of these concepts.
 #### Quantiles and loss function
 While we want the most accurate pricing forecast, the uncertainty in these forecasts or predictions can provide valuable information to improve decision making and bidding. And uncertainty is quantified mathematically using probability. From the domain of probability, we use the non parametric model of predictions errors as defined in [1], and use quantiles as a way to quantise the uncertainty in our predictions using quantile regression. By definition, a quantile is " a location within a set of ranked numbers, below which a certain proportion, p, of that set lie". Thus, instead of just one concrete pricing value as output, there will be multiple quantiles as the outputs of our model. The model is trained to minimise the quantile loss (or pinball loss) in order to output the most optimal quantiles. The total loss is the sum over all specified qauntiles of interest.
-TODO: Add equation here
+
+- TODO: Add equation here
+Q =
+ 􏰃􏰁(q)􏰂 􏰁(q)􏰂
+q∈Q
+q max 0,d−y
++(1−q)max 0,y −d
+
 Refer to this video by StatQuest to know more about quantiles.
 
 
 ## Implementation (The How? P2)
 
-#### Dataset
+#### Dataset and Preprocessing
 [5],[6]
-#### Preprocessing
-#### Normalisation
-#### Loss Function
-explain quantile loss
+For the past historical electrical prices, we used the hourly data obtained from [5] for the last 6 years i.e. from Jan 5 2015 - Dec 31 2020 for Belgium. Belgium was chosen as [1] also uses the same country for evaluation. This data contained 6 null values when daylight savings time start for every year. To factor for the null values, polynomial interpolation was used with degree of 2.
+Similary, the points in year when daylight savings time ended had 2 values. To account for this, only the maximum of the 2 values was kept.
+
+`day_ahead['Day-ahead Price [EUR/MWh]'] = day_ahead['Day-ahead Price [EUR/MWh]'].interpolate(method='polynomial', order=2)`
+`day_ahead = day_ahead.groupby('MTU (CET)')['Day-ahead Price [EUR/MWh]'].max().reset_index()`
+
+In additon to the electrical pricing data, the hourly weather data was also obtained for Brussels from [6] for the same time period and both the weather and pricing datasets were combined to form the input dataset.
+
+`total = pd.merge(day_ahead, weather, how='outer', on='datetime')`
+
+In contrast to [1], the exact hour for each day was encoded with incremental indexing within a continous range of [0.1,2.4]. We also tried the mutually exclusive binary representation as done in [1] and found the the performance detoriated slightly for the same test set. Hence, incremental indexing representation of daily hours was chosen in the end.
+
+`time = (total['time'].values/100).astype(int)
+time_increment = time/10`
+
+Add info about Normalisation here
+Since the predictions have to take place at 12pm each day, a sliding window approach with a configurable sequence length (36 in below code snippet) was used. Hence, the training samples (X,Y) to the network have the below form:
+X: [Weather and Price at t=12:00, Weather and Price at t=11:00, Weather and Price at t=10:00,..... Weather and Price at t=00:00 (the previous day)]
+Y: [Price at t=13:00, Price at Price at t=14:00,.......Price at t=12:00 (the next day)] 
+After preprocessing the dataset, similar to [1], the data from Jan 2015 - Oct 2020 was used for training, the data for Nov 2020 was used for validation and data for Dec 2020 was used for testing.
+
+#### Criterion and Optimiser
+
+As described earlier, we are interested in quantiles for output and hence, use the inbuilt QuantileLoss function provided by Pytorch. We had also tested custom implementation of quantile loss by referencing [7] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01 
 #### The Model Architecture
 explain model architecure and code
 #### Post Processing
@@ -51,6 +78,7 @@ comparison to original paper
 4. https://www.youtube.com/watch?v=IFKQLDmRK0Y
 5. https://transparency.entsoe.eu/transmission-domain/r2/dayAheadPrices/show
 6. https://www.worldweatheronline.com/brussels-weather-history/be.aspx
+7. https://github.com/maxmarketit/Auto-PyTorch/blob/develop/examples/quantiles/Quantiles.ipynb
 
 
 
