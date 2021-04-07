@@ -47,9 +47,10 @@ In additon to the electrical pricing data, the hourly weather data was also obta
 `total = pd.merge(day_ahead, weather, how='outer', on='datetime')`
 
 In contrast to [1], the exact hour for each day was encoded with incremental indexing within a continous range of [0.1,2.4]. We also tried the mutually exclusive binary representation as done in [1] and found the the performance detoriated slightly for the same test set. Hence, incremental indexing representation of daily hours was chosen in the end.
-
-`time = (total['time'].values/100).astype(int)
+```
+time = (total['time'].values/100).astype(int)
 time_increment = time/10`
+```
 
 Add info about Normalisation here
 Since the predictions have to take place at 12pm each day, a sliding window approach with a configurable sequence length (36 in below code snippet) was used. Hence, the training samples (X,Y) to the network have the below form:
@@ -62,7 +63,7 @@ After preprocessing the dataset, similar to [1], the data from Jan 2015 - Oct 20
 As described earlier, we are interested in quantiles for output and hence, use the inbuilt QuantileLoss function provided by Pytorch. We had also tested custom implementation of quantile loss by referencing [7] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01
 
 #### The Model Architecture
-A bidirection LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hypermparameter) followed by a linear layer for each quantile output. The code is mostly straightforward with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality and an array of quantiles  in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the qauntiles of interest are chosen to be [.01,0.05, 0.10,0.25, .5, 0.75, 0.90, 0.95, .99] in line with the paper[1].
+A bidirection LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hypermparameter) followed by a linear layer for each quantile output. The code is mostly straightforward with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the qauntiles of interest are chosen to be [.01,0.05, 0.10,0.25, .5, 0.75, 0.90, 0.95, .99] in line with the paper[1].
 ```
 class BLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim, quantiles):
@@ -87,7 +88,7 @@ class BLSTM(nn.Module):
         # Index hidden state of last time step        
         return torch.stack([layer(out[:, -1, :]) for layer in self.final_layers], dim=1)
  ```
- As per [1] and theory, since out training dataset is not huge, the dimensionality of hidden layers should be kept small in order to avoid overfitting.
+ As per [1] and theory, since our training dataset is not huge, the dimensionality of hidden layers should be kept small in order to avoid overfitting.
  
 #### Post Processing
 #### Regularisation
