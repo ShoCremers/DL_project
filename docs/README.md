@@ -59,13 +59,41 @@ After preprocessing the dataset, similar to [1], the data from Jan 2015 - Oct 20
 
 #### Criterion and Optimiser
 
-As described earlier, we are interested in quantiles for output and hence, use the inbuilt QuantileLoss function provided by Pytorch. We had also tested custom implementation of quantile loss by referencing [7] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01 
+As described earlier, we are interested in quantiles for output and hence, use the inbuilt QuantileLoss function provided by Pytorch. We had also tested custom implementation of quantile loss by referencing [7] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01
+
 #### The Model Architecture
-explain model architecure and code
+A bidirection LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hypermparameter) followed by a linear layer for each quantile output. The code is mostly straightforward with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality and an array of quantiles  in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the qauntiles of interest are chosen to be [.01,0.05, 0.10,0.25, .5, 0.75, 0.90, 0.95, .99] in line with the paper[1].
+```
+class BLSTM(nn.Module):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim, quantiles):
+        super(BLSTM, self).__init__()
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, bidirectional=True)
+        self.quantiles = quantiles
+        self.num_quantiles = len(quantiles)
+        self.out_shape = len(quantiles)
+        final_layers = [ nn.Linear(hidden_dim*2, output_dim) for _ in range(len(self.quantiles))]
+        self.final_layers = nn.ModuleList(final_layers)
+        
+   def forward(self, x):
+        # Initialize hidden state with zeros
+        h0 = torch.zeros(self.num_layers*2, x.size(0), self.hidden_dim).requires_grad_() #hidden layer output
+        # Initialize cell state
+        c0 = torch.zeros(self.num_layers*2, x.size(0), self.hidden_dim).requires_grad_() 
+        # We need to detach as we are doing truncated backpropagation through time (BPTT)
+        # If we don't, we'll backprop all the way to the start even after going through another batch
+        out, (hn, cn) = self.lstm(x, (h0.detach(), c0.detach()))
+        # Index hidden state of last time step        
+        return torch.stack([layer(out[:, -1, :]) for layer in self.final_layers], dim=1)
+ ```
+ As per [1] and theory, since out training dataset is not huge, the dimensionality of hidden layers should be kept small in order to avoid overfitting.
+ 
 #### Post Processing
 #### Regularisation
 early stopping and dropout
 #### Hyperparameter Tuning
+settings used
 #### Results
 comparison to original paper
 
