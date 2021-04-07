@@ -1,4 +1,4 @@
-## Day Ahead Pricing Forecasts for Short Term Scheduling in Power Markets- A Deep Learning based approach
+# Day Ahead Pricing Forecasts for Short Term Scheduling in Power Markets- A Deep Learning based approach
 
 Written by Akshit Gupta and @shocremers
 
@@ -13,34 +13,34 @@ So, this work caters to the participants ("who") as described in the preceding p
 ## Theory ( The How? P1)
 Being almost a trillion dollar industry [2] introduced only a few decades ago, naturally, few million smart people in the world have come up with various ways to get the most accurate pricing forecasts. Some of the earlier and current works in this domain rely heavily on stochastic theory, mathematics and a lot of mind (EWMA, ADD MORE METHODS HEER etc). However, as lazy computer scientists, our focus is to consider this problem first as a black box and then apply the most intelligible tool (Deep Learning based RNNs) to solve it.
 
-## RNNs and LSTMs
+#### RNNs and LSTMs
 In the field of Deep Learning (DL), Recurrent neural networks are well known to learn from sequential data. However, traditional RNNs are known to suffer from the problem of vanishing and exploding gradients in case the sequential pattern of interest occurs with large temporal resolution (or time intervals or gap length) . In order to tackle this, Long Short Term Memory (LSTMs, a type of RNNs) are used to remember sequential pattern of interest over these arbitrary time intervals. Thus, making them an apt choice for the problem at hand.
 Refer to Andrew Ng's renowned videos [3] for in-depth explanation of these concepts.
-## Quantiles
+#### Quantiles
 While we want the most accurate pricing forecast, the uncertainty in these forecasts or predictions can provide valuable information to improve decision making and bidding. And uncertainty is quantified mathematically using probability. From the domain of probability, as done in [1], we use quantiles as a way to quantise the uncertainty in our predictions. By definition, a quantile is " a location within a set of ranked numbers, below which a certain proportion, p, of that set lie". Thus, instead of just one concrete pricing value as outputs, there will be multiple quantiles as the output of our model.
 Refer to this video by StatQuest to know more about quantiles.
 
 
-####Implementation (The How? P2)
+## Implementation (The How? P2)
 
-##Dataset
+#### Dataset
 [5],[6]
-##Preprocessing
-##Normalisation
-##Loss Function
+#### Preprocessing
+#### Normalisation
+#### Loss Function
 explain quantile loss
-##The Model Architecture
+#### The Model Architecture
 explain model architecure and code
-##Post Processing
-##Regularisation
+#### Post Processing
+#### Regularisation
 early stopping and dropout
-##Hyperparameter Tuning
-##Results
+#### Hyperparameter Tuning
+#### Results
 comparison to original paper
 
-##Final Words
+## Final Words
 
-##References
+## References
 1. J. Toubeau, J. Bottieau, F. Vallée and Z. De Grève, "Deep Learning-Based Multivariate Probabilistic Forecasting for Short-Term Scheduling in 	   Power Markets" in IEEE Transactions on Power Systems, vol. 34, no. 2, pp. 1203–1215, March 2019, doi: 10.1109/TPWRS.2018.2870041.
 2. https://www.alliedmarketresearch.com/renewable-energy-market
 3. https://www.coursera.org/lecture/nlp-sequence-models/recurrent-neural-network-model-ftkzt
