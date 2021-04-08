@@ -113,7 +113,7 @@ settings used
 - The tuning parameters for early stopping and gaussian noise unspecified
 - How the dataset was broken into train, test and validation
 - A large number of explanatory variables used, such as Solar PV generation, wind generation, public holidays etc. but their encoding in input unspecified.
-- 
+- The final image does not contain the week of prediction in the month of December. It is expected that results will be worse during the week with christmas break.
 
 ## Final Words
 Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], thus highlighting the generalisability of the approach of the paper.
