@@ -97,7 +97,7 @@ early stopping and dropout
 #### Hyperparameter Tuning
 settings used
 
-#### Ambiguities
+
 #### Results
 | ![PaperResults](./images/paperResults.png?raw=true) | 
 |:--:| 
@@ -107,8 +107,16 @@ settings used
 |:--:| 
 | *Our Results* |
 
+## Ambiguities
+
+- Sequence Length is unspecified
+- The tuning parameters for early stopping and gaussian noise unspecified
+- How the dataset was broken into train, test and validation
+- A large number of explanatory variables used, such as Solar PV generation, wind generation, public holidays etc. but their encoding in input unspecified.
+- 
+
 ## Final Words
-Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], thus hihglighting the generalisability of the approach of the paper.
+Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], thus highlighting the generalisability of the approach of the paper.
 
 ## References
 1. J. Toubeau, J. Bottieau, F. Vallée and Z. De Grève, "Deep Learning-Based Multivariate Probabilistic Forecasting for Short-Term Scheduling in 	   Power Markets" in IEEE Transactions on Power Systems, vol. 34, no. 2, pp. 1203–1215, March 2019, doi: 10.1109/TPWRS.2018.2870041.
