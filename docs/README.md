@@ -22,12 +22,10 @@ Refer to Andrew Ng's renowned videos [3] for in-depth explanation of these conce
 #### Quantiles and loss function
 While we want the most accurate pricing forecast, the uncertainty in these forecasts or predictions can provide valuable information to improve decision making and bidding. And uncertainty is quantified mathematically using probability. From the domain of probability, we use the non parametric model of predictions errors as defined in [1], and use quantiles as a way to quantise the uncertainty in our predictions using quantile regression. By definition, a quantile is " a location within a set of ranked numbers, below which a certain proportion, p, of that set lie". Thus, instead of just one concrete pricing value as output, there will be multiple quantiles as the outputs of our model. The model is trained to minimise the quantile loss (or pinball loss) in order to output the most optimal quantiles. The total loss is the sum over all specified qauntiles of interest.
 
-- TODO: Add equation here
-Q =
- 􏰃􏰁(q)􏰂 􏰁(q)􏰂
-q∈Q
-q max 0,d−y
-+(1−q)max 0,y −d
+
+| ![Quantile Loss](./images/lossFuntion.png?raw=true) | 
+|:--:| 
+| *Qauntile Loss Function* |
 
 Refer to this video by StatQuest to know more about quantiles.
 
@@ -96,7 +94,13 @@ early stopping and dropout
 #### Hyperparameter Tuning
 settings used
 #### Results
-comparison to original paper
+| ![PaperResults](./images/paperResults.png?raw=true) | 
+|:--:| 
+| *Results from Paper [1]* |
+
+| ![ourResults](./images/e%3D10%2Ch%3D3%2Chd%3D20%2Cinput%3DpriceAndWeather.png?raw=true) | 
+|:--:| 
+| *Our Results* |
 
 ## Final Words
 Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], thus hihglighting the generalisability of the approach of the paper.
