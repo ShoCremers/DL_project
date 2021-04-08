@@ -93,6 +93,8 @@ class BLSTM(nn.Module):
 early stopping and dropout
 #### Hyperparameter Tuning
 settings used
+
+#### Ambiguities
 #### Results
 | ![PaperResults](./images/paperResults.png?raw=true) | 
 |:--:| 
