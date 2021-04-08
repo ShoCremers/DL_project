@@ -1,6 +1,6 @@
 # Day Ahead Pricing Forecasts for Short Term Scheduling in Power Markets- A Deep Learning based approach
 
-Written by Akshit Gupta and @shocremers
+Written by Akshit Gupta and Sho Cremers
 
 In this blog, we will go over deep learning based RNNs (specifically LSTMs) to forecast day ahead electricity prices in the context of power markets. The work is based largely on the approach highlighted in [1] and uses publicly available real world datasets for weather and electricity prices for training and evaluation. Our results show that RNNs ( bi-directional LSTMs) are a powerful tool for forecasting electrical prices with quantifable uncertainities. In doing so, we were successfully able to replicate the results of [1] albeit on a different dataset.
 
@@ -27,7 +27,7 @@ While we want the most accurate pricing forecast, the uncertainty in these forec
 
 | ![Quantile Loss](./images/lossFuntion.png?raw=true) | 
 |:--:| 
-| *Qauntile Loss Function [1]  * |
+| *Quantile Loss Function [1]  * |
 
 Refer to this video by StatQuest to know more about quantiles.
 
@@ -42,17 +42,13 @@ Similary, the points in year when daylight savings time ended had 2 values. To a
 `day_ahead['Day-ahead Price [EUR/MWh]'] = day_ahead['Day-ahead Price [EUR/MWh]'].interpolate(method='polynomial', order=2)`
 `day_ahead = day_ahead.groupby('MTU (CET)')['Day-ahead Price [EUR/MWh]'].max().reset_index()`
 
-In additon to the electrical pricing data, the hourly weather data was also obtained for Brussels from [6] for the same time period and both the weather and pricing datasets were combined to form the input dataset.
+In additon to the electrical pricing data, the hourly weather data was also obtained for Brussels from [6] for the same time period and both the weather and pricing datasets were combined to form the input dataset. The features that were used from the weather contains temperature, wind speed, degree of the wind direction precipitation, humidity, and air pressure.
 
 `total = pd.merge(day_ahead, weather, how='outer', on='datetime')`
 
-In contrast to [1], the exact hour for each day was encoded with incremental indexing within a continous range of [0.1,2.4]. We also tried the mutually exclusive binary representation as done in [1] and found the the performance detoriated slightly for the same test set. Hence, incremental indexing representation of daily hours was chosen in the end.
-```
-time = (total['time'].values/100).astype(int)
-time_increment = time/10`
-```
+Similarly to [1], three different representation of the time in hour was used. One of them was incremental indexing within the range of [0.1,2.4]. Another time representation was 5 inputs of binary gray coded time in the range of [(0,0,0,0,1), (1,0,1,0,0)]. Finally, we also used the mutually exclusive binary representation with 24 inputs (one-hot encoding of time). During the experiment, datasets with each of the time variable were tested, as well as the dataset with no time variable. The dataset without time representation did better on the validation set, and hence no time variable was used on the evaluation, which will be explained later on.
 
--Add info about Normalisation here
+To reduce the risk of features having different scales, which could cause prioritizing certain features falsly, features were either normalized or standardized. Variables like degree of wind direction and humidity, which have clear minimum and maximum values (wind degree: 0 - 360, humidity: 0 - 100), were normalized. precipitation was also normalized by taking the minimum and maximum values from the training data, but applying to the whole data. For the remaining variables that were not binary, standardization was applied, which transforms the features to have the mean of 0 and the standard deviation of 1. 
 
 Since the predictions have to take place at 12pm each day, a sliding window approach with a configurable sequence length (36 in below code snippet) was used. Hence, the training samples (X,Y) to the network have the below form:
 X: [Weather and Price at t=12:00, Weather and Price at t=11:00, Weather and Price at t=10:00,..... Weather and Price at t=00:00 (the previous day)]
@@ -61,7 +57,7 @@ After preprocessing the dataset, similar to [1], the data from Jan 2015 - Oct 20
 
 #### Criterion and Optimiser
 
-As described earlier, we are interested in quantiles for output and hence, use the inbuilt QuantileLoss function provided by Pytorch. We had also tested custom implementation of quantile loss by referencing [7] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01
+As described earlier, we are interested in quantiles for output and hence, use the QuantileLoss function provided by Pytorch Forecasting [7]. We had also tested custom implementation of quantile loss by referencing [8] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01
 
 #### The Model Architecture
 A bidirection LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hypermparameter) followed by a linear layer for each quantile output. The code is mostly straightforward with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the qauntiles of interest are chosen to be [.01,0.05, 0.10,0.25, .5, 0.75, 0.90, 0.95, .99] in line with the paper[1].
@@ -90,13 +86,29 @@ class BLSTM(nn.Module):
         return torch.stack([layer(out[:, -1, :]) for layer in self.final_layers], dim=1)
  ```
  As per [1] and theory, since our training dataset is not huge, the dimensionality of hidden layers should be kept small in order to avoid overfitting.
- 
-#### Training the model
-#### Post Processing
-#### Regularisation
-early stopping and dropout
-#### Hyperparameter Tuning
+
+ #### Training the model
+The model was trained for 500 epochs with the batch size of 64. 
+
+ #### Regularisation
+Two regularization techniques were used during the training. One was the addition of the noise on the LSTM weights and biases. A gaussian noise with mean of 0 and standard deviation of 0.01 was added to make the model more robust from the noise in the data. The following shows the implementation of weight noise in the model. 
+
+```
+def add_noise_to_weights(self):
+    with torch.no_grad():
+        # add noise to lstm weights
+        for weights in model.lstm._all_weights:
+            for weight in weights:
+                noise = torch.normal(0, 0.01, size=self.lstm._parameters[weight].size())
+                self.lstm._parameters[weight].add_(noise)
+```
+
+Another regularization used was early stopping. Training stopped when the quantile loss of the validation set did not decrease in the last 10 epochs since the lowest validation loss. 
+
+#### (Hyper)parameter Tuning
 settings used
+
+#### Post Processing
 
 
 #### Results
@@ -126,7 +138,8 @@ Following the approach of [1], the probabilistic forecast of electricity prices 
 4. https://www.youtube.com/watch?v=IFKQLDmRK0Y
 5. https://transparency.entsoe.eu/transmission-domain/r2/dayAheadPrices/show
 6. https://www.worldweatheronline.com/brussels-weather-history/be.aspx
-7. https://github.com/maxmarketit/Auto-PyTorch/blob/develop/examples/quantiles/Quantiles.ipynb
+7. https://pytorch-forecasting.readthedocs.io/en/latest/api/pytorch_forecasting.metrics.QuantileLoss.html
+8. https://github.com/maxmarketit/Auto-PyTorch/blob/develop/examples/quantiles/Quantiles.ipynb
 
 
 
