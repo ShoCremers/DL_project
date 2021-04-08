@@ -91,6 +91,7 @@ class BLSTM(nn.Module):
  ```
  As per [1] and theory, since our training dataset is not huge, the dimensionality of hidden layers should be kept small in order to avoid overfitting.
  
+#### Training the model
 #### Post Processing
 #### Regularisation
 early stopping and dropout
