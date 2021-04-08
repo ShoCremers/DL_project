@@ -9,7 +9,9 @@ In this blog, we will go over deep learning based RNNs (specifically LSTMs) to f
 In the modern world, electricity is a tradable quantity. To ensure transparency in the power markets, the power grids in most countries are regulated by a central authority. Since, storage of electricity is still costly, a balance between supply (generation at source) and demand (consumption at sink) is desired in power grids. Due to these constraints, electricity generators and consumers (hereon, called as energy actors as per [1]) submit pricing bids to the central authority at a fixed particular time of the day based on their multi step ahead probabilistic forecasts in order to maximise their return on investment. These electricity prices are dependent on a large number of extrinsic factors such as renewable energy generation, the weather conditions and the season of the year.
 
 For those interested, an in-depth explanation of these concepts is given here.
-TODO: ADD IMAGE HERE
+| ![Prediction Horizon](./images/predictionHorizon.png?raw=true) | 
+|:--:| 
+| *Prediction Horizon of Interest [1] * |
 So, this work caters to the energy actors ("who") as described in the preceding paragraph who want accurate electricity pricing ("what) in power grids a day in advance from a model in order to maximise their RoI ("why").
 
 ## Theory ( The How? P1)
@@ -25,7 +27,7 @@ While we want the most accurate pricing forecast, the uncertainty in these forec
 
 | ![Quantile Loss](./images/lossFuntion.png?raw=true) | 
 |:--:| 
-| *Qauntile Loss Function* |
+| *Qauntile Loss Function [1]  * |
 
 Refer to this video by StatQuest to know more about quantiles.
 
@@ -50,7 +52,8 @@ time = (total['time'].values/100).astype(int)
 time_increment = time/10`
 ```
 
-Add info about Normalisation here
+-Add info about Normalisation here
+
 Since the predictions have to take place at 12pm each day, a sliding window approach with a configurable sequence length (36 in below code snippet) was used. Hence, the training samples (X,Y) to the network have the below form:
 X: [Weather and Price at t=12:00, Weather and Price at t=11:00, Weather and Price at t=10:00,..... Weather and Price at t=00:00 (the previous day)]
 Y: [Price at t=13:00, Price at Price at t=14:00,.......Price at t=12:00 (the next day)] 
