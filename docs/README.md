@@ -60,7 +60,7 @@ After preprocessing the dataset, similar to [1], the data from Jan 2015 - Oct 20
 As described earlier, we are interested in quantiles for output and hence, use the QuantileLoss function provided by Pytorch Forecasting [7]. We had also tested custom implementation of quantile loss by referencing [8] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01
 
 #### The Model Architecture
-A bidirection LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hypermparameter) followed by a linear layer for each quantile output. The code is mostly straightforward with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the qauntiles of interest are chosen to be [.01,0.05, 0.10,0.25, .5, 0.75, 0.90, 0.95, .99] in line with the paper[1].
+A bidirection LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hypermparameter) followed by a linear layer for each quantile output. The code is mostly straightforward with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the qauntiles of interest are chosen to be [0.01,0.05, 0.10, 0.25, 0.5, 0.75, 0.90, 0.95, 0.99] in line with the paper[1].
 ```
 class BLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim, quantiles):
@@ -106,10 +106,14 @@ def add_noise_to_weights(self):
 Another regularization used was early stopping. Training stopped when the quantile loss of the validation set did not decrease in the last 10 epochs since the lowest validation loss. 
 
 #### (Hyper)parameter Tuning
-settings used
+To determine the best parameter and hyperparameter setting, we used a nested loop. The parameters that had to be determined was the time variable, sequence length of previous hours, the size of the hidden dimension, and the number of layers. The time variables that were tested were no time variable, incremental indexing, gray code binary, and mutually exclusive binary. For the sequence length, we tested with previous 12, 24, 36, 48, and 72 hours. The tested hidden dimension sizes were 4, 8, 16, 32, 64, and 128. Finally, we tested the model with 1-4 layers.
+
+We used the quantile loss on the validation set to evaluate the best parameter setting. As mentioned earlier, we used the patience size of 10 for early stopping, and so the performance of the model was determined by the average validation loss of the last 10 epochs. This was to avoid choosing a model that did well just one time, but instead a model that consistently did well.
+
+The best model was chosen to have no time variable, sequence length of 24 hours, 32 hidden dimensions, and 2 layers. A model was trained again with the mentioned parameters and was evaluated on the testing set. 
 
 #### Post Processing
-
+Once the quantiles of the day ahead electricity price of the testing set has been predicted using the trained model, the qunatiles were inverse-transformed so the values are in terms of day ahead price in euros. 
 
 #### Results
 | ![PaperResults](./images/paperResults.png?raw=true) | 
@@ -123,10 +127,11 @@ settings used
 ## Ambiguities
 
 - Sequence Length is unspecified
-- The tuning parameters for early stopping and gaussian noise unspecified
+- The tuning parameters for early stopping unspecified
+- The weight noise unspecified what kind of noise and specifically to which weights.
 - How the dataset was broken into train, test and validation
 - A large number of explanatory variables used, such as Solar PV generation, wind generation, public holidays etc. but their encoding in input unspecified.
-- The final image does not contain the week of prediction in the month of December. It is expected that results will be worse during the week with christmas break.
+- The final image only contains one week of prediction in the month of December. It is expected that results will be worse during the week with christmas break.
 
 ## Final Words
 Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], thus highlighting the generalisability of the approach of the paper.
