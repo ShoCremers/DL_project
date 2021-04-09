@@ -120,9 +120,22 @@ Once the quantiles of the day ahead electricity price of the testing set has bee
 |:--:| 
 | *Results from Paper [1]* |
 
-| ![ourResults](./images/e%3D10%2Ch%3D3%2Chd%3D20%2Cinput%3DpriceAndWeather.png?raw=true) | 
+| ![ourResults](./images/result_full.png?raw=true) | 
 |:--:| 
 | *Our Results* |
+
+| ![ourResults](./images/result_7days.png?raw=true) | 
+|:--:| 
+| *Our Results: First 7 days* |
+
+Our results shows that the model is able to predict the price in general. Looking at the first 7 days, the prediction during the day seems to show that the actual values are mostly within the quantiles. However, it has difficulty in predicting early morning. It is likely that the the electricity prices of early morning did not have a large spread in the training data, and hence predicting a smaller region with high confidence. 
+
+| Model         | Quantile loss |
+| ------------- |:-------------:|
+| Paper [1]     | 28.00 &euro;  |
+| Ours          | 25.40 &euro;  | 
+
+Interestingly, when we compare the average quantile loss between [1] and our model, it can be seen that our model does slightly better. It can be the case that the model in [1] predicted day ahead price much worse outside of the 7 days in the plot. It can be seen from our results that predicting the price during the holidays can be more difficult.
 
 ## Ambiguities
 
@@ -134,7 +147,9 @@ Once the quantiles of the day ahead electricity price of the testing set has bee
 - The final image only contains one week of prediction in the month of December. It is expected that results will be worse during the week with christmas break.
 
 ## Final Words
-Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], thus highlighting the generalisability of the approach of the paper.
+Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], while using a much simpler model. 
+
+For the improvement of the model, we can incorporate forecasting variables, such as weather forecast, along with historical weather data. Another adition that can be beneficial would be a variable indicating weather the day is a holiday, as our prediction was worse during the holidays. 
 
 ## References
 1. J. Toubeau, J. Bottieau, F. Vallée and Z. De Grève, "Deep Learning-Based Multivariate Probabilistic Forecasting for Short-Term Scheduling in 	   Power Markets" in IEEE Transactions on Power Systems, vol. 34, no. 2, pp. 1203–1215, March 2019, doi: 10.1109/TPWRS.2018.2870041.
