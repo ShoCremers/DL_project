@@ -1,8 +1,8 @@
-# Day Ahead Pricing Forecasts for Short Term Scheduling in Power Markets- A Deep Learning based approach
+# Day Ahead Pricing Forecasts for Short Term Scheduling in Power Markets - A Deep Learning based approach
 
 Written by Akshit Gupta and Sho Cremers
 
-In this blog, we will go over deep learning-based RNNs (specifically LSTMs) to forecast day-ahead electricity prices in the context of power markets. The work is mainly based on the approach highlighted in [1] and uses publicly available real-world datasets for weather and electricity prices for training and evaluation. Our results show that RNNs ( bi-directional LSTMs) are a powerful tool for forecasting electrical prices with quantifiable uncertainties. In doing so, we were successfully able to replicate the results of [1], albeit on a different dataset.
+In this blog, we will go over deep learning-based RNNs (specifically LSTMs) to forecast day-ahead electricity prices in the context of power markets. The work is mainly based on the approach highlighted in [1] and uses publicly available real-world datasets for weather and electricity prices for training and evaluation. Our results show that RNNs (bidirectional LSTMs) are a powerful tool for forecasting electrical prices with quantifiable uncertainties. In doing so, we were successfully able to replicate the results of [1], albeit on a different dataset.
 
 ## Motivation (The who, what and why?)
 
@@ -18,8 +18,13 @@ So, this work caters to the energy actors ("who") as described in the preceding 
 Being almost a trillion-dollar industry, [2] introduced only a few decades ago, naturally, few million smart people in the world have come up with various ways to get the most accurate pricing forecasts. Some of the earlier and current works in this domain, such as autoregressive moving average (ARMA), ARIMA, Markov chains, etc., rely heavily on mathematical modelling but do not consider the uncertainty associated with various extrinsic factors. However, our focus here is to consider this problem first as a black box and then apply the most intelligible tool (Deep Learning-based RNNs) to solve it. In the context of RNNs, LSTM models are designed to select and propagate the most relevant contextual information automatically and are more flexible than concrete mathematical models of predefined complexity.
 
 #### RNNs and LSTMs
-In the field of Deep Learning (DL), Recurrent neural networks are well known to learn from time-series data when the dataset is large enough. However, traditional RNNs are known to suffer from vanishing and exploding gradients, preventing them from modelling time dependencies that are more than a few steps long. Further, RNNs process the inputs in sequential order and ignore the information from time steps in the future. In order to tackle these two problems, bi-directional Long Short Term Memory (BLSTMs, a type of RNNs) are used to remember the sequential pattern of interest over these arbitrary long time intervals along with support for exploiting information over the whole temporal steps. Thus, making them an apt choice for the problem at hand.
-TODO (maybe): shall we explain BLSTM theory here? {lstm block, equation, bi-directional network}
+In the field of Deep Learning (DL), Recurrent neural networks are well known to learn from time-series data when the dataset is large enough. However, traditional RNNs are known to suffer from vanishing and exploding gradients, preventing them from modelling time dependencies that are more than a few steps long. Further, RNNs process the inputs in sequential order and ignore the information from time steps in the future. In order to tackle these two problems, bidirectional Long Short Term Memory (BLSTMs, a type of RNNs) are used to remember the sequential pattern of interest over these arbitrary long time intervals along with support for exploiting information over the whole temporal steps. Thus, making them an apt choice for the problem at hand. Bi-directional RNNs can be considered as having two separate layers. The forward layer takes inputs in the given order. The backward layer takes the inputs in the reversed order. Then, both of these layers are connected to the output layer. Speech recognition tasks have found it beneficial to include both directions in their models since words can be better recognized using the whole sentence rather than just previous words. Hence we hope that future weather and day-ahead prices can also help to find past day-ahead prices. The image below is the visualization of a bidirectional RNN, taken from [1].
+
+| ![BRNN](./images/BRNN.png?raw=true) | 
+|:--:| 
+| Bidirectional RNN [1]   |
+
+
 Refer to Andrew Ng's renowned videos [3] for an in-depth explanation of these concepts.
 
 #### Quantiles and loss function
@@ -60,7 +65,7 @@ After preprocessing the dataset, the data from Jan 2015 - Oct 2020 was used for 
 As described earlier, we are interested in quantiles for output and hence, use the QuantileLoss function provided by Pytorch Forecasting [7]. We had also tested custom implementation of quantile loss by referencing [8], and it gave similar results. Adam was used as the optimiser, and the learning rate was kept at 0.01 during the experiment.
 
 #### The Model Architecture
-A bi-directional LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hyperparameter) followed by a linear layer for each quantile output. The code is mostly straightforward, with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality, and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the quantiles of interest are chosen to be [0.01,0.05, 0.10, 0.25, 0.5, 0.75, 0.90, 0.95, 0.99] in line with the paper[1].
+A bidirectional LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hyperparameter) followed by a linear layer for each quantile output. The code is mostly straightforward, with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality, and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the quantiles of interest are chosen to be [0.01,0.05, 0.10, 0.25, 0.5, 0.75, 0.90, 0.95, 0.99] in line with the paper[1].
 ```
 class BLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim, quantiles):
