@@ -2,11 +2,11 @@
 
 Written by Akshit Gupta and Sho Cremers
 
-In this blog, we will go over deep learning based RNNs (specifically LSTMs) to forecast day ahead electricity prices in the context of power markets. The work is based largely on the approach highlighted in [1] and uses publicly available real world datasets for weather and electricity prices for training and evaluation. Our results show that RNNs ( bi-directional LSTMs) are a powerful tool for forecasting electrical prices with quantifable uncertainities. In doing so, we were successfully able to replicate the results of [1] albeit on a different dataset.
+In this blog, we will go over deep learning-based RNNs (specifically LSTMs) to forecast day-ahead electricity prices in the context of power markets. The work is mainly based on the approach highlighted in [1] and uses publicly available real-world datasets for weather and electricity prices for training and evaluation. Our results show that RNNs ( bi-directional LSTMs) are a powerful tool for forecasting electrical prices with quantifiable uncertainties. In doing so, we were successfully able to replicate the results of [1], albeit on a different dataset.
 
 ## Motivation (The who, what and why?)
 
-In the modern world, electricity is a tradable quantity. To ensure transparency in the power markets, the power grids in most countries are regulated by a central authority. Since, storage of electricity is still costly, a balance between supply (generation at source) and demand (consumption at sink) is desired in power grids. Due to these constraints, electricity generators and consumers (hereon, called as energy actors as per [1]) submit pricing bids to the central authority at a fixed particular time of the day based on their multi step ahead probabilistic forecasts in order to maximise their return on investment. These electricity prices are dependent on a large number of extrinsic factors such as renewable energy generation, the weather conditions and the season of the year.
+In the modern world, electricity is a tradable quantity. The central authority regulates power grids in most countries to ensure transparency in the power markets. Since electricity storage is still costly, a balance between supply (generation at source) and demand (consumption at the sink) is desired in power grids. Due to these constraints, electricity generators and consumers (hereon, called energy actors as per [1]) submit pricing bids to the central authority at a fixed particular time of the day based on their multi-step ahead probabilistic forecasts to maximise their return on investment. These electricity prices are dependent on a large number of extrinsic factors such as renewable energy generation, weather conditions, and the season of the year.
 
 For those interested, an in-depth explanation of these concepts is given here.
 | ![Prediction Horizon](./images/predictionHorizon.png?raw=true) | 
@@ -15,14 +15,15 @@ For those interested, an in-depth explanation of these concepts is given here.
 So, this work caters to the energy actors ("who") as described in the preceding paragraph who want accurate electricity pricing ("what) in power grids a day in advance from a model in order to maximise their RoI ("why").
 
 ## Theory ( The How? P1)
-Being almost a trillion dollar industry [2] introduced only a few decades ago, naturally, few million smart people in the world have come up with various ways to get the most accurate pricing forecasts. Some of the earlier and current works in this domain such as autoregressive moving average (ARMA), ARIMA, markov chains etc. rely heavily on mathematical modelling but do not take into account the uncertainty associated with various extrinsic factors. However, as lazy computer scientists (may remove this part from sentence), our focus here is to consider this problem first as a black box and then apply the most intelligible tool (Deep Learning based RNNs) to solve it. In the context of RNNs, LSTM models are utilised which are designed to automatically select and propagate the most relevant contextual information and are more flexible than concrete mathematical models of predefined complexity.
+Being almost a trillion-dollar industry, [2] introduced only a few decades ago, naturally, few million smart people in the world have come up with various ways to get the most accurate pricing forecasts. Some of the earlier and current works in this domain, such as autoregressive moving average (ARMA), ARIMA, Markov chains, etc., rely heavily on mathematical modelling but do not consider the uncertainty associated with various extrinsic factors. However, our focus here is to consider this problem first as a black box and then apply the most intelligible tool (Deep Learning-based RNNs) to solve it. In the context of RNNs, LSTM models are designed to select and propagate the most relevant contextual information automatically and are more flexible than concrete mathematical models of predefined complexity.
 
 #### RNNs and LSTMs
-In the field of Deep Learning (DL), Recurrent neural networks are well known to learn from time series data when the dataset is large enough. However, traditional RNNs are known to suffer from the problem of vanishing and exploding gradients preventing them to model time depencies which are more than a few steps long. Further, RNNs process the inputs in sequential order and ignore the information from time steps in the future. In order to tackle these two problems, bi-directional Long Short Term Memory (BLSTMs, a type of RNNs) are used to remember sequential pattern of interest over these arbitrary long time intervals along with support for exploiting information over the whole temporal steps. Thus, making them an apt choice for the problem at hand.
-TODO (maybe): shall we explain BLSTM theory here? {lstm block, equation, bi directional network}
-Refer to Andrew Ng's renowned videos [3] for in-depth explanation of these concepts.
+In the field of Deep Learning (DL), Recurrent neural networks are well known to learn from time-series data when the dataset is large enough. However, traditional RNNs are known to suffer from vanishing and exploding gradients, preventing them from modelling time dependencies that are more than a few steps long. Further, RNNs process the inputs in sequential order and ignore the information from time steps in the future. In order to tackle these two problems, bi-directional Long Short Term Memory (BLSTMs, a type of RNNs) are used to remember the sequential pattern of interest over these arbitrary long time intervals along with support for exploiting information over the whole temporal steps. Thus, making them an apt choice for the problem at hand.
+TODO (maybe): shall we explain BLSTM theory here? {lstm block, equation, bi-directional network}
+Refer to Andrew Ng's renowned videos [3] for an in-depth explanation of these concepts.
+
 #### Quantiles and loss function
-While we want the most accurate pricing forecast, the uncertainty in these forecasts or predictions can provide valuable information to improve decision making and bidding. And uncertainty is quantified mathematically using probability. From the domain of probability, we use the non parametric model of predictions errors as defined in [1], and use quantiles as a way to quantise the uncertainty in our predictions using quantile regression. By definition, a quantile is " a location within a set of ranked numbers, below which a certain proportion, p, of that set lie". Thus, instead of just one concrete pricing value as output, there will be multiple quantiles as the outputs of our model. The model is trained to minimise the quantile loss (or pinball loss) in order to output the most optimal quantiles. The total loss is the sum over all specified qauntiles of interest.
+While we want the most accurate pricing forecast, the uncertainty in these forecasts or predictions can provide valuable information to improve decision making and bidding. And uncertainty is quantified mathematically using probability. From the domain of probability, we use the non-parametric model of prediction errors as defined in [1]. We use quantiles as a way to quantise the uncertainty in our predictions using quantile regression. By definition, a quantile is " a location within a set of ranked numbers, below which a certain proportion, p, of that set lie." Thus, instead of just one concrete pricing value as output, there will be multiple quantiles as the outputs of our model. The model is trained to minimise the quantile loss (or pinball loss) in order to output the most optimal quantiles. The total loss is the sum over all specified quantiles of interest.
 
 
 | ![Quantile Loss](./images/lossFuntion.png?raw=true) | 
@@ -35,32 +36,31 @@ Refer to this video by StatQuest to know more about quantiles.
 ## Implementation (The How? P2)
 
 #### Dataset and Preprocessing
-[5],[6]
-For the past historical electrical prices, we used the hourly data obtained from [5] for the last 6 years i.e. from Jan 5 2015 - Dec 31 2020 for Belgium. Belgium was chosen as [1] also uses the same country for evaluation. This data contained 6 null values when daylight savings time start for every year. To factor for the null values, polynomial interpolation was used with degree of 2.
-Similary, the points in year when daylight savings time ended had 2 values. To account for this, only the maximum of the 2 values was kept.
+We used the hourly data obtained from [5] for Belgium's past historical electrical prices for the last six years, i.e., from Jan 5, 2015 - Dec 31, 2020. Belgium was chosen as [1] also uses the same country for evaluation. This data contained 6 null values when daylight savings time starts for every year. To factor for the null values, second-degree polynomial interpolation was used. On the other hand, there was once in a year in which 2 values existed for the same hour when the daylight savings time ended. To account for this, only the maximum of the 2 values was kept.
 
 `day_ahead['Day-ahead Price [EUR/MWh]'] = day_ahead['Day-ahead Price [EUR/MWh]'].interpolate(method='polynomial', order=2)`
 `day_ahead = day_ahead.groupby('MTU (CET)')['Day-ahead Price [EUR/MWh]'].max().reset_index()`
 
-In additon to the electrical pricing data, the hourly weather data was also obtained for Brussels from [6] for the same time period and both the weather and pricing datasets were combined to form the input dataset. The features that were used from the weather contains temperature, wind speed, degree of the wind direction precipitation, humidity, and air pressure.
+In addition to the electrical pricing data, the hourly weather data was also obtained for Brussels from [6] for the same time period, and both the weather and pricing datasets were combined to form the input dataset. The features that were used from the weather contain temperature, wind speed, degree of the wind direction precipitation, humidity, and air pressure.
 
 `total = pd.merge(day_ahead, weather, how='outer', on='datetime')`
 
-Similarly to [1], three different representation of the time in hour was used. One of them was incremental indexing within the range of [0.1,2.4]. Another time representation was 5 inputs of binary gray coded time in the range of [(0,0,0,0,1), (1,0,1,0,0)]. Finally, we also used the mutually exclusive binary representation with 24 inputs (one-hot encoding of time). During the experiment, datasets with each of the time variable were tested, as well as the dataset with no time variable. The dataset without time representation did better on the validation set, and hence no time variable was used on the evaluation, which will be explained later on.
+Similarly to [1], three different representation of the time in hour was used. One of them was incremental indexing within the range of [0.1,2.4]. Another time representation was 5 inputs of binary gray coded time in the range of [(0,0,0,0,1), (1,0,1,0,0)]. Finally, we used the mutually exclusive binary representation with 24 inputs (one-hot encoding of time). During the experiment, datasets with each of the time variables were tested, as well as the dataset with no time variable. The dataset without time representation did better on the validation set, and hence no time variable was used on the evaluation, which will be explained later on.
 
-To reduce the risk of features having different scales, which could cause prioritizing certain features falsly, features were either normalized or standardized. Variables like degree of wind direction and humidity, which have clear minimum and maximum values (wind degree: 0 - 360, humidity: 0 - 100), were normalized. precipitation was also normalized by taking the minimum and maximum values from the training data, but applying to the whole data. For the remaining variables that were not binary, standardization was applied, which transforms the features to have the mean of 0 and the standard deviation of 1. 
+To reduce the risk of features having different scales, which could cause prioritizing certain features falsly, features were either normalized or standardized. Variables like degree of wind direction and humidity, which have clear minimum and maximum values (wind degree: 0 - 360, humidity: 0 - 100), were normalized. Precipitation was also normalized by taking the minimum and maximum values from the training data but applying them to the whole data. For the remaining variables that were not binary, standardization was applied, which transforms the features to have the mean of 0 and the standard deviation of 1. 
 
-Since the predictions have to take place at 12pm each day, a sliding window approach with a configurable sequence length (36 in below code snippet) was used. Hence, the training samples (X,Y) to the network have the below form:
-X: [Weather and Price at t=12:00, Weather and Price at t=11:00, Weather and Price at t=10:00,..... Weather and Price at t=00:00 (the previous day)]
-Y: [Price at t=13:00, Price at Price at t=14:00,.......Price at t=12:00 (the next day)] 
-After preprocessing the dataset, similar to [1], the data from Jan 2015 - Oct 2020 was used for training, the data for Nov 2020 was used for validation and data for Dec 2020 was used for testing.
+Since the predictions have to take place at 12 pm each day, a sliding window approach with a configurable sequence length was used. Hence, the training samples (X, Y) to the network have the below form (assuming sequence length of 24):
+X: [Weather and Price at t=12:00 (the previous day), Weather and Price at t=13:00, Weather and Price at t=14:00,..... Weather and Price at t=11:00 (the current day)]
+Y: [Price at t=0:00, Price at Price at t=1:00,.......Price at t=11:00 (the next day)] 
+
+After preprocessing the dataset, the data from Jan 2015 - Oct 2020 was used for training, the data for Nov 2020 was used for validation, and data for Dec 2020 was used for testing.
 
 #### Criterion and Optimiser
 
-As described earlier, we are interested in quantiles for output and hence, use the QuantileLoss function provided by Pytorch Forecasting [7]. We had also tested custom implementation of quantile loss by referencing [8] and it gave similar results. Adam was used as the optimiser and the learning rate was kept 0.01
+As described earlier, we are interested in quantiles for output and hence, use the QuantileLoss function provided by Pytorch Forecasting [7]. We had also tested custom implementation of quantile loss by referencing [8], and it gave similar results. Adam was used as the optimiser, and the learning rate was kept at 0.01 during the experiment.
 
 #### The Model Architecture
-A bidirection LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hypermparameter) followed by a linear layer for each quantile output. The code is mostly straightforward with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the qauntiles of interest are chosen to be [0.01,0.05, 0.10, 0.25, 0.5, 0.75, 0.90, 0.95, 0.99] in line with the paper[1].
+A bi-directional LSTM model is used with the number of outputs equal to the number of quantiles of interest. The model contains a variable number of LSTM layers (hyperparameter) followed by a linear layer for each quantile output. The code is mostly straightforward, with the model expecting the number of hidden layers (num_layers), the dimensionality of each hidden layer, the output dimensionality, and an array of quantiles in the constructor. The output dimensionality is kept 24 in our case due to prediction for next 24 hours and the quantiles of interest are chosen to be [0.01,0.05, 0.10, 0.25, 0.5, 0.75, 0.90, 0.95, 0.99] in line with the paper[1].
 ```
 class BLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim, quantiles):
@@ -88,10 +88,10 @@ class BLSTM(nn.Module):
  As per [1] and theory, since our training dataset is not huge, the dimensionality of hidden layers should be kept small in order to avoid overfitting.
 
  #### Training the model
-The model was trained for 500 epochs with the batch size of 64. 
+The model was trained for 500 epochs with a batch size of 64. 
 
  #### Regularisation
-Two regularization techniques were used during the training. One was the addition of the noise on the LSTM weights and biases. A gaussian noise with mean of 0 and standard deviation of 0.01 was added to make the model more robust from the noise in the data. The following shows the implementation of weight noise in the model. 
+Two regularization techniques were used during the training. One was the addition of the noise on the LSTM weights and biases. Gaussian noise with mean of 0 and standard deviation of 0.01 was added to make the model more robust from the noise in the data. The following shows the implementation of weight noise in the model. 
 
 ```
 def add_noise_to_weights(self):
@@ -103,19 +103,19 @@ def add_noise_to_weights(self):
                 self.lstm._parameters[weight].add_(noise)
 ```
 
-Another regularization used was early stopping. Training stopped when the quantile loss of the validation set did not decrease in the last 10 epochs since the lowest validation loss. 
+Another regularization we used was early stopping. Training stopped when the validation set's quantile loss did not decrease in the last 10 epochs since the lowest validation loss. 
 
 #### (Hyper)parameter Tuning
-To determine the best parameter and hyperparameter setting, we used a nested loop. The parameters that had to be determined was the time variable, sequence length of previous hours, the size of the hidden dimension, and the number of layers. The time variables that were tested were no time variable, incremental indexing, gray code binary, and mutually exclusive binary. For the sequence length, we tested with previous 12, 24, 36, 48, and 72 hours. The tested hidden dimension sizes were 4, 8, 16, 32, 64, and 128. Finally, we tested the model with 1-4 layers.
+To determine the best parameter and hyperparameter setting, we used a nested loop. The parameters that had to be determined were the time variable, the sequence length of previous hours, the size of the hidden dimension, and the number of layers. The time variables that were tested were no time variable, incremental indexing, gray code binary, and mutually exclusive binary. We tested with the previous 12, 24, 36, 48, and 72 hours for the sequence length. The tested hidden dimension sizes were 4, 8, 16, 32, 64, and 128. Finally, we tested the model with 1-4 layers.
 
-We used the quantile loss on the validation set to evaluate the best parameter setting. As mentioned earlier, we used the patience size of 10 for early stopping, and so the performance of the model was determined by the average validation loss of the last 10 epochs. This was to avoid choosing a model that did well just one time, but instead a model that consistently did well.
+We used the quantile loss on the validation set to evaluate the best parameter setting. As mentioned earlier, we used the patience size of 10 for early stopping, and so the performance of the model was determined by the average validation loss of the last 10 epochs. This was to avoid choosing a model that did well just one time, but instead, a model that consistently did well.
 
-The best model was chosen to have no time variable, sequence length of 24 hours, 32 hidden dimensions, and 2 layers. A model was trained again with the mentioned parameters and was evaluated on the testing set. 
+The best model was chosen to have no time variable, the sequence length of 24 hours, 32 hidden dimensions, and 2 layers. The model was trained again with the mentioned parameters and was evaluated on the testing set. 
 
 #### Post Processing
-Once the quantiles of the day ahead electricity price of the testing set has been predicted using the trained model, the qunatiles were inverse-transformed so the values are in terms of day ahead price in euros. 
+Once the quantiles of the day ahead electricity price of the testing set has been predicted using the trained model, the quantiles were inverse-transformed, so the values are in terms of day-ahead price in euros. 
 
-#### Results
+## Results
 | ![PaperResults](./images/paperResults.png?raw=true) | 
 |:--:| 
 | *Results from Paper [1]* |
@@ -128,14 +128,14 @@ Once the quantiles of the day ahead electricity price of the testing set has bee
 |:--:| 
 | *Our Results: First 7 days* |
 
-Our results shows that the model is able to predict the price in general. Looking at the first 7 days, the prediction during the day seems to show that the actual values are mostly within the quantiles. However, it has difficulty in predicting early morning. It is likely that the the electricity prices of early morning did not have a large spread in the training data, and hence predicting a smaller region with high confidence. 
+Our results show that the model can predict the price quite well in general. Looking at the first seven days, the prediction during the day seems to show that the actual values are mostly within the quantiles. However, it has difficulty in predicting prices of early morning. It is likely that early morning electricity prices did not have a large spread in the training data, hence predicting a smaller region with high confidence. 
 
 | Model         | Quantile loss |
 | ------------- |:-------------:|
 | Paper [1]     | 28.00 &euro;  |
 | Ours          | 25.40 &euro;  | 
 
-Interestingly, when we compare the average quantile loss between [1] and our model, it can be seen that our model does slightly better. It can be the case that the model in [1] predicted day ahead price much worse outside of the 7 days in the plot. It can be seen from our results that predicting the price during the holidays can be more difficult.
+Interestingly, when we compare the average quantile loss between [1] and our model, our model does slightly better. It can be the case that the model in [1] predicted the day-ahead price much worse outside of the seven days in the plot. It can be seen from our results that predicting the price during the holidays can be more difficult.
 
 ## Ambiguities
 
@@ -147,9 +147,9 @@ Interestingly, when we compare the average quantile loss between [1] and our mod
 - The final image only contains one week of prediction in the month of December. It is expected that results will be worse during the week with christmas break.
 
 ## Final Words
-Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with limited number of explanatory variables. Even with these constraints, our resultant output curves are similar to [1], while using a much simpler model. 
+Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with a limited number of explanatory variables. Our resultant output curves are similar to [1], even with these constraints, while using a much simpler model. 
 
-For the improvement of the model, we can incorporate forecasting variables, such as weather forecast, along with historical weather data. Another adition that can be beneficial would be a variable indicating weather the day is a holiday, as our prediction was worse during the holidays. 
+To improve the model, we can incorporate forecasting variables, such as weather forecast, along with historical weather data. Another addition that can be beneficial would be a variable indicating whether the day is a holiday, as our prediction was worse during the holidays. 
 
 ## References
 1. J. Toubeau, J. Bottieau, F. Vallée and Z. De Grève, "Deep Learning-Based Multivariate Probabilistic Forecasting for Short-Term Scheduling in 	   Power Markets" in IEEE Transactions on Power Systems, vol. 34, no. 2, pp. 1203–1215, March 2019, doi: 10.1109/TPWRS.2018.2870041.
