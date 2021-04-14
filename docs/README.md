@@ -88,7 +88,43 @@ class BLSTM(nn.Module):
  As per [1] and theory, since our training dataset is not huge, the dimensionality of hidden layers should be kept small in order to avoid overfitting.
 
  #### Training the model
-The model was trained for 500 epochs with a batch size of 64. 
+The model was trained for 500 epochs with a batch size of 64. The following shows the training loop.
+
+```
+for t in range(num_epochs): 
+                    
+    err = []
+                    
+    # training
+    for batch in trainloader:
+        inputs, outputs = batch
+        model.add_noise_to_weights() # adding noise to lstm weights during the training
+        y_train_pred = model(inputs)
+
+        loss = torch.mean(torch.sum(criterion.loss(torch.transpose(y_train_pred,1,2), outputs), dim=2))
+        optimiser.zero_grad()
+        loss.backward()
+        optimiser.step()
+        err.append(loss.item())
+
+    # validation
+    with torch.no_grad():
+        reds=model(x_val)
+        val_loss = torch.mean(torch.sum(criterion.loss(torch.transpose(preds,1,2), y_val), dim=2)).item()
+        val_losses.append(val_loss)
+
+    if val_loss < val_loss_best:
+        val_loss_best = val_loss
+        patience_cnt = 0
+    else:
+        patience_cnt +=1
+        if patience_cnt == patience:
+            print("Early stopping: Epoch ", t+1, "training loss: ", sum(err)/len(err), "validation loss: ", val_loss)
+            break
+                    
+    if (t+1) % 10 == 0:
+        print("Epoch ", t+1, "training loss: ", sum(err)/len(err), "validation loss: ", val_loss)
+```
 
  #### Regularisation
 Two regularization techniques were used during the training. One was the addition of the noise on the LSTM weights and biases. Gaussian noise with mean of 0 and standard deviation of 0.01 was added to make the model more robust from the noise in the data. The following shows the implementation of weight noise in the model. 
@@ -139,12 +175,7 @@ Interestingly, when we compare the average quantile loss between [1] and our mod
 
 ## Ambiguities
 
-- Sequence Length is unspecified
-- The tuning parameters for early stopping unspecified
-- The weight noise unspecified what kind of noise and specifically to which weights.
-- How the dataset was broken into train, test and validation
-- A large number of explanatory variables used, such as Solar PV generation, wind generation, public holidays etc. but their encoding in input unspecified.
-- The final image only contains one week of prediction in the month of December. It is expected that results will be worse during the week with christmas break.
+While we aimed to reproduce [1] as best as we can, we encountered several ambiguities. The paper did not specify how and what kind of noises were added to the weights for the regularization. Besides mentioning that they used early stopping, they also did not mention how it was executed. They also do not clearly state how the data were divided into training, validation, and testing sets. They used the whole "month of winter 2017" for evaluation but decided only to show a plot of prediction of seven days. This can be an issue since we can expect that results will be worse during the week with Christmas break. Finally, a large number of explanatory variables were used in their experiment, such as Solar PV generation, wind generation, public holidays, etc., but their encoding in input was unspecified.
 
 ## Final Words
 Following the approach of [1], the probabilistic forecast of electricity prices was reproduced on a different dataset with a limited number of explanatory variables. Our resultant output curves are similar to [1], even with these constraints, while using a much simpler model. 
