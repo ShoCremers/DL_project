@@ -1,5 +1,17 @@
 # Day Ahead Pricing Forecasts for Short Term Scheduling in Power Markets - A Deep Learning based approach
 
+## For Brightspace Submission (not for blog)
+
+Akshit Gupta (5137012) - a.gupta-20@student.tudelft.nl
+
+Sho Cremers (5052602) - s.a.cremers@student.tudelft.nl
+
+### Overview
+
+Overall, the workload was divided equally among the two of us. While Sho worked mainly on preprocessing, Akshit worked on buiding the BLSTM model. The workload of training, evaluation, and blog writing was divided equally. 
+
+## Start of blog
+
 Written by Akshit Gupta and Sho Cremers
 
 In this blog, we will go over deep learning-based RNNs (specifically LSTMs) to forecast day-ahead electricity prices in the context of power markets. The work is mainly based on the approach highlighted in [1] and uses publicly available real-world datasets for weather and electricity prices for training and evaluation. Our results show that RNNs (bidirectional LSTMs) are a powerful tool for forecasting electrical prices with quantifiable uncertainties. In doing so, we were successfully able to replicate the results of [1], albeit on a different dataset.
