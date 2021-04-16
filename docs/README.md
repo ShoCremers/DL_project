@@ -70,9 +70,9 @@ After preprocessing the dataset, the data from Jan 2015 - Oct 2020 was used for 
 
 #### Feature Engineering
 
-Time (hourly), day of week, week and current month are cyclic features, so they need to be represented approraitely so that the model is aware of their cyclic nature. Similarly to [1], for time, three different representation were used. One of them was incremental indexing within the range of [0.1,2.4]. Another representation of time was 5 inputs of binary gray coded time in the range of [(0,0,0,0,1), (1,0,1,0,0)]. Finally, we used the mutually exclusive binary representation with 24 inputs (one-hot encoding of time). During the experiment, datasets with each of the time variables were tested, as well as the dataset with no time variable.
-// The dataset without time representation did better on the validation set, and hence no time variable was used on the evaluation, which will be explained later on.
-To represent day of week, week and current month, they were converted to two periodic waveforms of sine and cosine function with appropiate periods. This is shown in the codeblock below and a good explantion of this kind of representation for these cyclic features is given in [9]. 
+Time (hourly), day of the week, week, and current month are cyclic features, so they need to be represented appropriately so that the model is aware of their cyclic nature. Similarly to [1], three different representations were used for time. One of them was incremental indexing within the range of [0.1,2.4]. Another representation of time was 5 inputs of binary gray coded time in the range of [(0,0,0,0,1), (1,0,1,0,0)]. Finally, we used the mutually exclusive binary representation with 24 inputs (one-hot encoding of time). During the experiment, datasets with each of the time variables were tested, as well as the dataset with no time variable. The dataset incremental indexing time representation did better on the validation set, and hence no time variable was used on the evaluation, which will be explained later on.
+
+To represent the day of the week, week, and current month, they were converted to two periodic waveforms of sine and cosine function with appropriate periods. This is shown in the code block below, and a good explanation of this kind of representation for these cyclic features is given in [9]. 
 ```
     df1['dow_sin'] = np.sin(df1.index.dayofweek*(2.*np.pi/7))
     df1['dow_cos'] = np.cos(df1.index.dayofweek*(2.*np.pi/7))
@@ -181,7 +181,7 @@ We used the quantile loss on the validation set to evaluate the best parameter s
 |:--:| 
 | Hyperparameter Tuning loop (inspired from [1])   |
 
-The best model was chosen to have incremental indexing, the sequence length of 24 hours, 32 hidden dimensions, and 2 layers. Having obtained these parameters, the model was trained again and was evaluated on the testing set. 
+The best model was chosen to have incremental indexing, the sequence length of 72 hours, 32 hidden dimensions, and 3 layers. Having obtained these parameters, the model was trained again and was evaluated on the testing set. 
 
 #### Post Processing
 Once the quantiles of the day ahead electricity price of the testing set has been predicted using the trained model, the quantiles were inverse-transformed, so the values are in terms of day-ahead price in euros. 
@@ -204,9 +204,9 @@ Our results show that the model can predict the price quite well in general. Loo
 | Model         | Quantile loss |
 | ------------- |:-------------:|
 | Paper [1]     | 28.00 &euro;  |
-| Ours          | 25.40 &euro;  | 
+| Ours          | 28.17 &euro;  | 
 
-Interestingly, when we compare the average quantile loss between [1] and our model, our model does slightly better. It can be the case that the model in [1] predicted the day-ahead price much worse outside of the seven days in the plot. It can be seen from our results that predicting the price during the holidays can be more difficult.
+Comparing the average quantile loss between [1] and our model, they perform almost equally. However, it is difficult to get the full picture since [1] only shows the plot of 7 days and not for the whole month tested. Our results show that predicting the price during the holidays can be more difficult, so it would have been nice if we could compare the performance.
 
 ## Ambiguities
 
